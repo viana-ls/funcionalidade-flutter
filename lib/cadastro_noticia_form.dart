@@ -223,7 +223,7 @@ class _CadastroNoticiaFormState extends State<CadastroNoticiaForm> {
             icon: const Icon(Icons.cloud_upload_outlined),
             label: Padding(
               padding: const EdgeInsets.all(12),
-              child: Text(_saving ? 'Salvando no Firebase...' : 'Publicar notícia'),
+              child: Text(_saving ? 'Publicando...' : 'Publicar notícia'),
             ),
           ),
         ],

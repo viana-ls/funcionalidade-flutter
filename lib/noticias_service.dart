@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// Conexão com o Cloud Firestore para cadastrar notícias.
-///
-/// Grava na coleção `noticias` do projeto `alumni-d1a49`, a mesma lida pelo app
-/// Allumni, com o mesmo formato de documento.
+/// Conexão com o banco de dados para gerenciar notícias.
 class NoticiasService {
   NoticiasService({FirebaseFirestore? firestore}) : _db = firestore ?? FirebaseFirestore.instance;
 
@@ -11,13 +8,26 @@ class NoticiasService {
 
   static const colecao = 'noticias';
 
-  /// Este app age sempre como administrador, então não há login.
+  /// Este app age sempre como administrador.
   static const autor = 'Administrador';
+
+  /// Stream com a lista de notícias ordenadas das mais recentes para as mais antigas.
+  Stream<List<Map<String, dynamic>>> streamNoticias() {
+    return _db.collection(colecao).snapshots().map((s) {
+      final list = s.docs.map((d) => {'id': d.id, ...d.data()}).toList();
+      int millis(dynamic v) => v is Timestamp ? v.millisecondsSinceEpoch : DateTime.now().millisecondsSinceEpoch;
+      list.sort((a, b) => millis(b['criado_em']).compareTo(millis(a['criado_em'])));
+      return list;
+    });
+  }
+
+  /// Exclui uma notícia pelo id do documento.
+  Future<void> excluir(String id) => _db.collection(colecao).doc(id).delete();
 
   /// Cria a notícia e devolve o id do documento.
   ///
-  /// [imagem] é um link `http(s)` ou um data URI `data:image/...;base64,...`
-  /// (o projeto não usa Firebase Storage). Vazio = sem imagem.
+  /// [imagem] é um link `http(s)` ou um data URI `data:image/...;base64,...`.
+  /// Vazio = sem imagem.
   Future<String> cadastrar({
     required String titulo,
     required String conteudo,
